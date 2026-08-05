@@ -1,13 +1,16 @@
 Source: krb5keytab
-Section: unknown
-Priority: extra
-Maintainer: root <elric@imrryr.org>
-Build-Depends: debhelper (>= 7), dh-autoreconf, libkrb5admin-perl (>= 0.3)
-Standards-Version: 3.8.3
-Homepage: <insert the upstream URL, if relevant>
+Section: admin
+Priority: optional
+Maintainer: Roland C. Dowdeswell <elric@imrryr.org>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://github.com/ChapelTech/krb5_keytab
 
 Package: krb5keytab
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: libkrb5admin-perl (>= 0.4.3-1), ${misc:Depends}, ${perl:Depends}, ${shlibs:Depends}
+Description: Kerberos keytab management helper
+ krb5keytab provides a privileged helper and Perl client for installing,
+ changing, listing, querying, testing, and generating Kerberos keytabs through
+ the krb5_admin framework.

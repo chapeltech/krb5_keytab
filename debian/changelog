@@ -1,3 +1,12 @@
+krb5keytab (0.4-1) trixie; urgency=medium
+
+  * Complete the Debian package metadata.
+  * Depend on the distro-Heimdal krb5_admin revision at runtime rather than
+    build time.
+  * Build release packages natively for amd64 and arm64.
+
+ -- Roland C. Dowdeswell <elric@imrryr.org>  Wed, 05 Aug 2026 21:04:42 +0100
+
 krb5keytab (0.4) unstable; urgency=medium
 
   * Don't forget to terminate options with --

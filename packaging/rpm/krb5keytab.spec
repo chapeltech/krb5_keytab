@@ -1,6 +1,6 @@
 Name:           krb5keytab
 Version:        0.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Kerberos keytab management helper
 License:        MIT
 URL:            https://github.com/chapeltech/krb5_keytab
@@ -8,11 +8,11 @@ Source0:        krb5_keytab-%{version}.tar.gz
 
 BuildRequires:  gcc
 BuildRequires:  diffutils
-BuildRequires:  libkrb5admin-perl >= 0.3
 BuildRequires:  make
 BuildRequires:  perl
+BuildRequires:  perl-generators
 
-Requires:       libkrb5admin-perl >= 0.3
+Requires:       libkrb5admin-perl >= 0.4.3-7
 
 %description
 krb5keytab contains a privileged helper and Perl client for managing Kerberos
@@ -43,5 +43,9 @@ export CFLAGS="%{optflags}"
 %{_mandir}/man8/krb5_keytab.8*
 
 %changelog
+* Wed Aug 05 2026 ChapelTech <packages@chapel.tech> - 0.4-2
+- Depend on the distro-Heimdal krb5_admin revision at runtime, not build time.
+- Embed OpenPGP signatures in release RPMs.
+
 * Wed Aug 05 2026 ChapelTech <packages@chapel.tech> - 0.4-1
 - Add Rocky/RHEL packaging.
