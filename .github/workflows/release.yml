@@ -1,0 +1,124 @@
+name: Release packages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+env:
+  KRB5_ADMIN_REPOSITORY: ChapelTech/krb5_admin
+  KRB5_ADMIN_RELEASE: v0.4.3
+
+jobs:
+  debian:
+    runs-on: ubuntu-latest
+    container: debian:bookworm
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential ca-certificates curl debhelper dh-autoreconf \
+            jq perl
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Install matching krb5_admin package
+        run: |
+          arch=$(dpkg --print-architecture)
+          api="https://api.github.com/repos/$KRB5_ADMIN_REPOSITORY/releases/tags/$KRB5_ADMIN_RELEASE"
+          urls=$(curl -fsSL -H 'Accept: application/vnd.github+json' "$api" |
+            jq -r '.assets[].browser_download_url' |
+            grep -E "/libkrb5admin-perl_[^/]+_${arch}\\.deb$")
+          test "$(printf '%s\n' "$urls" | grep -c .)" -eq 1
+          curl -fsSL "$urls" -o libkrb5admin-perl.deb
+          test "$(dpkg-deb -f libkrb5admin-perl.deb Architecture)" = "$arch"
+          dpkg --force-depends -i libkrb5admin-perl.deb
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(dpkg-parsechangelog -SVersion)
+          test "${RELEASE_TAG#v}" = "${version%%-*}"
+      - name: Build Debian package
+        run: |
+          dpkg-buildpackage --build=binary --no-sign
+          mkdir artifacts
+          cp ../*.deb artifacts/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages
+          path: artifacts/*.deb
+          if-no-files-found: error
+          retention-days: 1
+
+  rpm:
+    runs-on: ubuntu-latest
+    container: rockylinux:9
+    steps:
+      - name: Install build tools
+        run: >-
+          dnf install -y
+          curl diffutils findutils gcc git gzip jq make perl rpm-build
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Install matching krb5_admin package
+        shell: bash
+        run: |
+          arch=$(rpm --eval '%{_arch}')
+          api="https://api.github.com/repos/$KRB5_ADMIN_REPOSITORY/releases/tags/$KRB5_ADMIN_RELEASE"
+          mapfile -t urls < <(curl -fsSL -H 'Accept: application/vnd.github+json' "$api" |
+            jq -r '.assets[].browser_download_url' |
+            grep -E "/libkrb5admin-perl-[0-9][^/]*\\.el9\\.${arch}\\.rpm$")
+          test "${#urls[@]}" -eq 1
+          curl -fsSL "${urls[0]}" -o libkrb5admin-perl.rpm
+          test "$(rpm -qp --qf '%{ARCH}\n' libkrb5admin-perl.rpm)" = "$arch"
+          rpm -Uvh --nodeps libkrb5admin-perl.rpm
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(rpm -q --specfile packaging/rpm/krb5keytab.spec \
+            --qf '%{VERSION}\n' | head -1)
+          test "${RELEASE_TAG#v}" = "$version"
+      - name: Build RPM packages
+        run: |
+          version=$(rpm -q --specfile packaging/rpm/krb5keytab.spec \
+            --qf '%{VERSION}\n' | head -1)
+          topdir=$HOME/rpmbuild
+          mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git archive --format=tar --prefix="krb5_keytab-$version/" HEAD |
+            gzip -n >"$topdir/SOURCES/krb5_keytab-$version.tar.gz"
+          rpmbuild -ba --define "_topdir $topdir" \
+            packaging/rpm/krb5keytab.spec
+          mkdir artifacts
+          find "$topdir/RPMS" "$topdir/SRPMS" -type f -name '*.rpm' \
+            -exec cp {} artifacts/ \;
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm-packages
+          path: artifacts/*.rpm
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [debian, rpm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Upload packages to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release upload "$RELEASE_TAG" artifacts/*
+          --repo "$GITHUB_REPOSITORY" --clobber

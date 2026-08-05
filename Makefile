@@ -18,6 +18,9 @@ all:
 	cd scripts	&& $(MAKE) PERL='$(PERL)' PREFIX='$(PREFIX)'
 	cd suid_helper	&& $(MAKE) CFLAGS='$(CFLAGS)'
 
+check: all
+	/bin/sh tests/smoke.sh
+
 install:
 	umask 022 && mkdir -p $(LIBEXEC)
 	umask 022 && mkdir -p $(SBIN)

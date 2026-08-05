@@ -7,6 +7,7 @@ URL:            https://github.com/elric1/krb5_keytab
 Source0:        krb5_keytab-%{version}.tar.gz
 
 BuildRequires:  gcc
+BuildRequires:  diffutils
 BuildRequires:  libkrb5admin-perl >= 0.3
 BuildRequires:  make
 BuildRequires:  perl
@@ -24,6 +25,9 @@ sed -i 's/-Werror//g' suid_helper/Makefile
 %build
 export CFLAGS="%{optflags}"
 %make_build PREFIX=%{_prefix}
+
+%check
+/bin/sh tests/smoke.sh
 
 %install
 %make_install PREFIX=%{_prefix}

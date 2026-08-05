@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential perl
+          make -j"$(nproc)"
+          sudo make check
+      - name: Test staged installation
+        run: |
+          stage=$(mktemp -d)
+          sudo make DESTDIR="$stage" install
+          test -u "$stage/usr/sbin/krb5_keytab"
+          test -x "$stage/usr/libexec/krb5_keytabc"
+          test -f "$stage/usr/share/man/man5/krb5_keytab.conf.5"
+          test -f "$stage/usr/share/man/man8/krb5_keytab.8"
