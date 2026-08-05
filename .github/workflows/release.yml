@@ -61,7 +61,7 @@ jobs:
       - name: Install build tools
         run: >-
           dnf install -y
-          curl diffutils findutils gcc git gzip jq make perl rpm-build
+          diffutils findutils gcc git gzip jq make perl rpm-build
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}
