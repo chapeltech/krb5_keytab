@@ -49,6 +49,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || env.RELEASE_TAG }}
       - name: Check release version
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           version=$(dpkg-parsechangelog -SVersion)
           test "${RELEASE_TAG#v}" = "${version%%-*}"
           git rev-parse --verify "$RELEASE_TAG^{commit}" >/dev/null
@@ -91,6 +92,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || env.RELEASE_TAG }}
       - name: Check release version
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           version=$(rpm --specfile -q --qf '%{VERSION}\n' \
             packaging/rpm/krb5keytab.spec | head -1)
           test "${RELEASE_TAG#v}" = "$version"
