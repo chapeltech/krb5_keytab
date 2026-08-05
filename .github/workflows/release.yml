@@ -14,14 +14,14 @@ env:
 jobs:
   debian:
     runs-on: ubuntu-latest
-    container: debian:bookworm
+    container: debian:trixie-slim
     steps:
       - name: Install build tools
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y \
             build-essential ca-certificates curl debhelper dh-autoreconf \
-            jq perl
+            git jq perl
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.tag_name }}

@@ -3,7 +3,7 @@ Version:        0.4
 Release:        1%{?dist}
 Summary:        Kerberos keytab management helper
 License:        MIT
-URL:            https://github.com/elric1/krb5_keytab
+URL:            https://github.com/chapeltech/krb5_keytab
 Source0:        krb5_keytab-%{version}.tar.gz
 
 BuildRequires:  gcc
