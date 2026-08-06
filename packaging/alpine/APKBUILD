@@ -1,0 +1,33 @@
+# Maintainer: ChapelTech <packages@chapel.tech>
+pkgname=krb5keytab
+pkgver=0.4
+pkgrel=0
+pkgdesc="Kerberos keytab management helper"
+url="https://github.com/ChapelTech/krb5_keytab"
+arch="all"
+license="MIT"
+depends="libkrb5admin-perl>=0.4.3 perl"
+checkdepends="diffutils"
+options="checkroot suid"
+subpackages="$pkgname-doc"
+source="krb5_keytab-$pkgver.tar.gz"
+builddir="$srcdir/krb5_keytab-$pkgver"
+
+build() {
+	make PREFIX=/usr
+}
+
+check() {
+	CFLAGS= /bin/sh tests/smoke.sh
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+	install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/README"
+	install -Dm644 debian/copyright \
+		"$pkgdir/usr/share/licenses/$pkgname/copyright"
+}
+
+sha512sums="
+84defd8e30a220d3ab7c712c6f1b9cac20d71a0074b1753db78a30d6530e4c1f92117569bd32129470f0e5ce8323d5f0a52c3ab4bb0461b1a79fe178be8bc5d9  krb5_keytab-0.4.tar.gz
+"
